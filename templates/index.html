@@ -1,0 +1,393 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FraudShield AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">⬡</div>
+            <div>
+                <h2>FraudShield<span> AI</span></h2>
+                <small>Transaction Intelligence</small>
+            </div>
+        </div>
+
+        <div class="nav-label">WORKSPACE</div>
+
+        <button class="nav-item active" data-page="dashboard">
+            <span>◫</span> Dashboard
+        </button>
+        <button class="nav-item" data-page="dataset">
+            <span>▤</span> Dataset
+        </button>
+        <button class="nav-item" data-page="models">
+            <span>⌘</span> Model Performance
+        </button>
+        <button class="nav-item" data-page="fraud">
+            <span>⚠</span> Fraud Transactions
+        </button>
+        <button class="nav-item" data-page="predict">
+            <span>⌁</span> Test Transaction
+        </button>
+
+        <div class="sidebar-bottom">
+            <div class="status-dot"></div>
+            <div>
+                <strong>System Ready</strong>
+                <small>Local ML Environment</small>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">AI FRAUD DETECTION</p>
+                <h1 id="page-title">Dashboard Overview</h1>
+            </div>
+            <div class="top-right">
+                <div class="system-badge">
+                    <span class="green-dot"></span> System Online
+                </div>
+                <div class="avatar">FS</div>
+            </div>
+        </header>
+
+        <!-- DASHBOARD PAGE -->
+        <section class="page active" id="dashboard">
+            <div class="welcome">
+                <div>
+                    <h2>Transaction Intelligence Center</h2>
+                    <p>Monitor, analyze and detect fraudulent transactions using machine learning.</p>
+                </div>
+                <button class="primary-btn" onclick="trainModels()">
+                    ▶ Train Models
+                </button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span>Total Transactions</span><span class="stat-icon blue">▤</span>
+                    </div>
+                    <h2 id="total-transactions">—</h2>
+                    <p>Dataset records</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span>Fraud Transactions</span><span class="stat-icon red">⚠</span>
+                    </div>
+                    <h2 id="fraud-count">—</h2>
+                    <p class="red-text">Actual labeled fraud</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span>Fraud Rate</span><span class="stat-icon orange">%</span>
+                    </div>
+                    <h2 id="fraud-rate">—</h2>
+                    <p>Dataset proportion</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <span>Models Trained</span><span class="stat-icon green">⌘</span>
+                    </div>
+                    <h2 id="models-count">0 / 2</h2>
+                    <p id="model-status">Awaiting training</p>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h3>Model Performance</h3>
+                            <p>Precision vs Recall comparison</p>
+                        </div>
+                        <span class="tag">ML METRICS</span>
+                    </div>
+                    <div class="chart-wrap">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                <div>
+                    <h3>Transaction Distribution</h3>
+                    <p>Normal vs Fraud</p>
+                </div>
+                </div>
+                    <div class="chart-wrap doughnut-wrap">
+                        <canvas id="distributionChart"></canvas>
+                    </div>
+                    <div class="chart-legend">
+                        <span><i class="legend-normal"></i> Normal</span>
+                        <span><i class="legend-fraud"></i> Fraud</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h3>Recent Fraud Transactions</h3>
+                        <p>Actual fraud records from dataset</p>
+                    </div>
+                    <button class="text-btn" onclick="navigate('fraud')">View All →</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Transaction Type</th>
+                                <th>Amount</th>
+                                <th>Step</th>
+                                <th>Origin Balance</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-fraud-body">
+                            <tr><td colspan="5" class="empty">Upload a dataset to view transactions.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- DATASET PAGE -->
+        <section class="page" id="dataset">
+            <div class="section-heading">
+                <h2>Dataset Explorer</h2>
+                <p>Upload and inspect your PaySim dataset.</p>
+            </div>
+
+            <div class="panel upload-panel">
+                <div id="drop-zone" class="drop-zone">
+                    <div class="upload-icon">↑</div>
+                    <h3>Upload your dataset</h3>
+                    <p>Drag and drop a CSV file here or click below</p>
+                    <label for="csv-input" class="primary-btn">Browse CSV</label>
+                    <input type="file" id="csv-input" accept=".csv" hidden>
+                    <p class="upload-hint">CSV format · Maximum size 100 MB</p>
+                </div>
+                <div id="upload-status" class="message"></div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span>Total Rows</span>
+                    <h2 id="dataset-rows">—</h2>
+                </div>
+                <div class="stat-card">
+                    <span>Normal Records</span>
+                    <h2 id="dataset-normal">—</h2>
+                </div>
+                <div class="stat-card">
+                    <span>Fraud Records</span>
+                    <h2 id="dataset-fraud">—</h2>
+                </div>
+                <div class="stat-card">
+                    <span>Columns</span>
+                    <h2 id="dataset-columns">—</h2>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h3>Data Preview</h3>
+                        <p>First 10 records of the dataset</p>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead id="dataset-head"></thead>
+                        <tbody id="dataset-body">
+                            <tr><td class="empty">No dataset loaded.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODELS PAGE -->
+        <section class="page" id="models">
+            <div class="section-heading">
+                <h2>Model Performance</h2>
+                <p>Train and evaluate Random Forest and XGBoost classifiers.</p>
+            </div>
+
+            <div class="train-banner">
+                <div>
+                    <h3>Train machine learning models</h3>
+                    <p>Training may take a few minutes depending on the dataset size.</p>
+                </div>
+                <button class="primary-btn" onclick="trainModels()" id="train-btn">▶ Train Models</button>
+            </div>
+
+            <div id="training-status" class="message"></div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span>Random Forest Precision</span>
+                    <h2 id="rf-precision">—</h2>
+                </div>
+                <div class="stat-card">
+                    <span>Random Forest Recall</span>
+                    <h2 id="rf-recall">—</h2>
+                </div>
+                <div class="stat-card">
+                    <span>XGBoost Precision</span>
+                    <h2 id="xgb-precision">—</h2>
+                </div>
+                <div class="stat-card">
+                    <span>XGBoost Recall</span>
+                    <h2 id="xgb-recall">—</h2>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h3>Precision / Recall / F1</h3>
+                        <p>Comparison of model evaluation scores</p>
+                    </div>
+                </div>
+                <div class="chart-wrap large-chart">
+                    <canvas id="modelChart"></canvas>
+                </div>
+            </div>
+
+            <div class="matrices-grid">
+                <div class="panel">
+                    <div class="panel-header"><h3>Random Forest Confusion Matrix</h3></div>
+                    <div id="rf-matrix"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header"><h3>XGBoost Confusion Matrix</h3></div>
+                    <div id="xgb-matrix"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FRAUD PAGE -->
+        <section class="page" id="fraud">
+            <div class="section-heading">
+                <h2>Fraud Transactions</h2>
+                <p>Explore fraudulent records from the loaded dataset.</p>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h3>Fraud Records</h3>
+                        <p id="fraud-table-count">Train the models to load fraud records.</p>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Step</th>
+                                <th>Origin Balance</th>
+                                <th>New Origin Balance</th>
+                                <th>Fraud</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fraud-table-body">
+                            <tr><td colspan="6" class="empty">No records loaded.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- PREDICT PAGE -->
+        <section class="page" id="predict">
+            <div class="section-heading">
+                <h2>Test a Transaction</h2>
+                <p>Enter transaction details and get predictions from both ML models.</p>
+            </div>
+
+            <div class="predict-layout">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h3>Transaction Details</h3>
+                            <p>Fill in the information below</p>
+                        </div>
+                    </div>
+
+                    <form id="predict-form">
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label>Transaction Amount</label>
+                                <input type="number" name="amount" min="0" step="0.01" placeholder="e.g. 5000" required>
+                            </div>
+                            <div class="form-field">
+                                <label>Transaction Type</label>
+                                <select name="type" required>
+                                    <option value="PAYMENT">PAYMENT</option>
+                                    <option value="CASH_IN">CASH_IN</option>
+                                    <option value="DEBIT">DEBIT</option>
+                                    <option value="CASH_OUT">CASH_OUT</option>
+                                    <option value="TRANSFER" selected>TRANSFER</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label>Step (Hour)</label>
+                                <input type="number" name="step" min="0" value="1" required>
+                            </div>
+                            <div class="form-field">
+                                <label>Transaction Frequency</label>
+                                <input type="number" name="frequency" min="1" value="1" required>
+                            </div>
+                            <div class="form-field">
+                                <label>Old Origin Balance</label>
+                                <input type="number" name="oldbalanceOrg" min="0" step="0.01" value="10000" required>
+                            </div>
+                            <div class="form-field">
+                                <label>New Origin Balance</label>
+                                <input type="number" name="newbalanceOrig" min="0" step="0.01" value="5000" required>
+                            </div>
+                        </div>
+                        <button class="primary-btn full-btn" type="submit">Analyze Transaction →</button>
+                    </form>
+        </div>
+
+                <div class="panel prediction-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h3>Prediction Results</h3>
+                            <p>Model outputs</p>
+                        </div>
+                    </div>
+                    <div id="prediction-results">
+                        <div class="prediction-placeholder">
+                            <div class="big-shield">⬡</div>
+                            <h3>Awaiting transaction</h3>
+                            <p>Enter transaction details and click Analyze to view results.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer>FraudShield AI · ML Applications Lab · Random Forest & XGBoost</footer>
+    </main>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
